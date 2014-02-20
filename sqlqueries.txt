@@ -1,0 +1,158 @@
+USE UD13_fg222cj_Faktura;
+
+/* Uppgift 3a */
+
+INSERT INTO Kund (Namn, Adress, Postnr, Ort, KategoriID, Rabatt)
+VALUES ('Danielssons Elektriska AB', 'Storgatan 128', '123 56', 'STOCKHOLM', 1, 0.03);
+
+INSERT INTO Telefon (KundID, Telenr, TeltypID)
+VALUES (6, '08-897 02 00', 6)
+
+INSERT INTO Telefon (KundID, Telenr, TeltypID)
+VALUES (6, '070-547 02 87', 5)
+
+/* Uppgift 3b */
+
+INSERT INTO Artikel (Artnamn, Antal, Pris)
+VALUES ('Bildskärm, platt, 10ms', 47, 2173.00)
+
+INSERT INTO Artikel (Artnamn, Antal, Pris)
+VALUES ('Tangentbord', 36, 280.00)
+
+INSERT INTO Artikel (Artnamn, Antal, Pris)
+VALUES ('Nätkabel, TP kat 5', 1020, 2.50)
+
+/* Uppgift 3c */
+
+INSERT INTO Faktura (Datum, Betvillkor, KundID)
+VALUES ('2012-04-20', 25, 6)
+
+/* Uppgift 4a */
+
+UPDATE Kund
+SET KategoriID = 4
+WHERE KundID = 1
+
+/* Uppgift 4b */
+
+UPDATE Telefon
+SET Telenr = '0480-492239'
+WHERE KundID = 2 AND Telenr = '0480-479888'
+
+/* Uppgift 4c */
+
+UPDATE Artikel
+SET Pris = ROUND(Pris*1.08, 2)
+
+/* Uppgift 4d */
+
+
+
+/* Uppgift 4e */
+
+UPDATE Artikel
+SET Plats = 'HLP 25'
+WHERE Artnamn like 'Bildskärm%'
+
+/* Uppgift 4f */
+
+UPDATE Artikel
+SET Plats = 'Förråd 10'
+WHERE Plats IS NULL
+
+/* Uppgift 4g */
+
+UPDATE Fakturarad
+SET Pris = (SELECT Pris FROM Artikel
+WHERE ArtikelID = 2)
+WHERE ArtikelID = 2
+
+/* Uppgift 5a */
+
+
+
+/* Uppgift 5b */
+
+
+
+/* Uppgift 5c */
+
+
+
+/* Uppgift 6a */
+
+
+
+/* Uppgift 6b */
+
+
+
+/* Uppgift 6c */
+
+
+
+/* Uppgift 6d */
+
+
+
+/* Uppgift 6e */
+
+
+
+/* Uppgift 6f */
+
+
+
+/* Uppgift 6g */
+
+
+
+/* Uppgift 6h */
+
+
+
+/* Uppgift 7a */
+
+
+
+/* Uppgift 7b */
+
+
+
+/* Uppgift 7c */
+
+
+
+/* Uppgift 7d */
+
+
+
+/* Uppgift 7e */
+
+
+
+/* Uppgift 7f */
+
+
+
+/* Uppgift 7g */
+
+
+
+/* Uppgift 8a */
+
+
+
+/* Uppgift 8b */
+
+
+
+/* Uppgift 8c */
+
+
+
+/* Uppgift 8d */
+
+
+
+/* Uppgift 8e */
