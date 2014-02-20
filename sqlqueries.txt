@@ -1,5 +1,4 @@
-SELECT ArtikelID, Artnamn, Antal, Pris, FLOOR(Pris*Antal) AS Artikelvärde
-FROM USE UD13_fg222cj_Faktura;
+USE UD13_fg222cj_Faktura;
 
 /* Uppgift 3a */
 
@@ -109,7 +108,7 @@ ORDER BY Postnr DESC
 
 /* Uppgift 6d */
 
-SELECT Namn, (Adress + ' ' + Postnr + ' ' + Ort) AS Postadress
+SELECT Namn, Adress + ' ' + Postnr + ' ' + Ort AS Postadress
 FROM Kund
 ORDER BY Ort ASC
 
@@ -137,11 +136,20 @@ ORDER BY Artikelvärde DESC
 
 /* Uppgift 7a */
 
-
+SELECT K.KundID, Namn, Ort, Telenr
+FROM Kund AS K INNER JOIN Telefon AS T
+ON K.KundID = T.KundID
+ORDER BY Namn
 
 /* Uppgift 7b */
 
-
+SELECT Datum, Betvillkor, A.Artnamn, Fr.Antal, Fr.Pris, Moms*100 AS Moms, Fr.Rabatt, ROUND((Fr.Pris*Fr.Antal)*(1-Fr.Rabatt)*(1+Moms), 2) AS Summa
+FROM Faktura AS F INNER JOIN Fakturarad AS Fr
+ON F.FakturaID = Fr.FakturaID
+INNER JOIN Artikel AS A
+ON A.ArtikelID = Fr.ArtikelID
+INNER JOIN Moms AS M
+ON Fr.MomsID = M.MomsID
 
 /* Uppgift 7c */
 
