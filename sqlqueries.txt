@@ -153,27 +153,49 @@ ON Fr.MomsID = M.MomsID
 
 /* Uppgift 7c */
 
-
+SELECT Datum, Betvillkor, A.Artnamn, Fr.Antal, Fr.Pris, Moms*100 AS Moms, Fr.Rabatt,
+ROUND((Fr.Pris*Fr.Antal)*(1-Fr.Rabatt)*(1+Moms), 2) AS Summa, DATEADD(DAY, Betvillkor, Datum) AS Förfallodatum
+FROM Faktura AS F INNER JOIN Fakturarad AS Fr
+ON F.FakturaID = Fr.FakturaID
+INNER JOIN Artikel AS A
+ON A.ArtikelID = Fr.ArtikelID
+INNER JOIN Moms AS M
+ON Fr.MomsID = M.MomsID
 
 /* Uppgift 7d */
 
-
+SELECT Namn, Kategori, Datum, Betvillkor
+FROM Kund INNER JOIN Kategori
+ON Kund.KategoriID = Kategori.KategoriID
+LEFT JOIN Faktura
+ON Kund.KundID = Faktura.KundID
+/* Ändra LEFT till INNER om vi endast vill se kunder som har fakturor. */
 
 /* Uppgift 7e */
 
-
+SELECT Namn, Kategori, Datum, Betvillkor
+FROM Kund INNER JOIN Kategori
+ON Kund.KategoriID = Kategori.KategoriID
+LEFT JOIN Faktura
+ON Kund.KundID = Faktura.KundID
+WHERE Datum > '2012-04-01' AND Datum < '2012-04-30'
 
 /* Uppgift 7f */
 
-
+SELECT Namn, Adress + ' ' + Postnr + ' ' + Ort AS Postadress
+FROM Kund
+WHERE KundID NOT IN (SELECT DISTINCT KundID FROM Faktura)
 
 /* Uppgift 7g */
 
-
+SELECT ArtikelID, Artnamn, Pris, Antal
+FROM Artikel
+WHERE ArtikelID NOT IN (SELECT DISTINCT ArtikelID FROM Fakturarad)
 
 /* Uppgift 8a */
 
-
+SELECT COUNT(KundID) AS 'Antal kunder'
+FROM Kund
 
 /* Uppgift 8b */
 
