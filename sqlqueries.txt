@@ -1,4 +1,5 @@
-USE UD13_fg222cj_Faktura;
+SELECT ArtikelID, Artnamn, Antal, Pris, FLOOR(Pris*Antal) AS Artikelvärde
+FROM USE UD13_fg222cj_Faktura;
 
 /* Uppgift 3a */
 
@@ -69,47 +70,70 @@ WHERE ArtikelID = 2
 
 /* Uppgift 5a */
 
-
+DELETE
+FROM Telefon
+WHERE KundID = 6 AND TeltypID = 6
 
 /* Uppgift 5b */
 
-
+DELETE
+FROM Fakturarad
+WHERE ArtikelID = 4
 
 /* Uppgift 5c */
 
+DELETE
+FROM Kategori
+WHERE KategoriID = 4
 
+/* Tack vare den referentiella integriteten mellan tabellerna Kund
+ * och Kategori så går det inte att ta bort den här posten. No action
+ * innebär att ingen post i Kategori kan tas bort om den har en
+ * barnpost i Kund.  */
 
 /* Uppgift 6a */
 
-
+SELECT *
+FROM Kund
 
 /* Uppgift 6b */
 
-
+SELECT Namn, Postnr, Ort
+FROM Kund
 
 /* Uppgift 6c */
 
-
+SELECT Namn, Postnr, Ort
+FROM Kund
+ORDER BY Postnr DESC
 
 /* Uppgift 6d */
 
-
+SELECT Namn, (Adress + ' ' + Postnr + ' ' + Ort) AS Postadress
+FROM Kund
+ORDER BY Ort ASC
 
 /* Uppgift 6e */
 
-
+SELECT ArtikelID, Artnamn, Antal, Pris, FLOOR(Pris*Antal) AS Artikelvärde
+FROM Artikel
 
 /* Uppgift 6f */
 
-
+SELECT ArtikelID, Artnamn, Plats, Antal, '______' AS 'Nytt antal'
+FROM Artikel
 
 /* Uppgift 6g */
 
-
+SELECT ArtikelID, Artnamn, Antal, Pris, FLOOR(Pris*Antal) AS Artikelvärde
+FROM Artikel
+WHERE Antal > 22 AND Plats = 'Förråd 10'
 
 /* Uppgift 6h */
 
-
+SELECT TOP 5 ArtikelID, Artnamn, Antal, Pris, FLOOR(Pris*Antal) AS Artikelvärde
+FROM Artikel
+ORDER BY Artikelvärde DESC
 
 /* Uppgift 7a */
 
