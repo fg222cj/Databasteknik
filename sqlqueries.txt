@@ -230,3 +230,28 @@ GROUP BY F.FakturaID, F.Datum
 
 /* Uppgift 9a */
 
+SELECT CONVERT(date, Datum) AS Datumet, Betvillkor, A.Artnamn, Fr.Antal, Fr.Pris, Moms*100 AS Moms, Fr.Rabatt,
+ROUND((Fr.Pris*Fr.Antal)*(1-Fr.Rabatt)*(1+Moms), 2) AS Summa, CONVERT(date, DATEADD(DAY, Betvillkor, Datum)) AS Förfallodatum
+FROM Faktura AS F INNER JOIN Fakturarad AS Fr
+ON F.FakturaID = Fr.FakturaID
+INNER JOIN Artikel AS A
+ON A.ArtikelID = Fr.ArtikelID
+INNER JOIN Moms AS M
+ON Fr.MomsID = M.MomsID
+
+/* Uppgift 9b */
+
+SELECT *, CAST(Postnr AS varchar(3)) AS RegionNr
+FROM Kund
+
+/* Uppgift 9c */
+
+SELECT UPPER(Artnamn) + '  ' + CAST(Lagervarde AS varchar(15)) AS Artikel
+FROM Artikel
+
+/* Uppgift 9d */
+
+SELECT DATEDIFF(DAY, CONVERT(date, GETDATE()), CONVERT(date, '2014-12-31')) AS Nyår,
+DATEDIFF(DAY, CONVERT(date, GETDATE()), CONVERT(date, '2014-04-20')) AS Födelsedag,
+DATENAME(DW, CONVERT(date, '2014-04-20')) AS Födelseveckodag
+
