@@ -199,14 +199,59 @@ FROM Kund
 
 /* Uppgift 8b */
 
-
+SELECT FLOOR(ROUND(SUM(Antal*Pris),0)) AS Artikelvärde
+FROM Artikel
 
 /* Uppgift 8c */
 
-
+SELECT SUM(Antal) AS Antal, FLOOR(ROUND(SUM(Antal*Pris),0)) AS Artikelvärde,
+FLOOR(ROUND(MAX(Antal*Pris),0)) AS Maxvärde, FLOOR(ROUND(MIN(Antal*Pris),0)) AS Minvärde,
+FLOOR(ROUND(AVG(Antal*Pris),0)) AS Medelvärde
+FROM Artikel
 
 /* Uppgift 8d */
 
-
+SELECT SUM(Antal) AS Antal, FLOOR(ROUND(SUM(Antal*Pris),0)) AS Artikelvärde,
+FLOOR(ROUND(MAX(Antal*Pris),0)) AS Maxvärde, FLOOR(ROUND(MIN(Antal*Pris),0)) AS Minvärde,
+FLOOR(ROUND(AVG(Antal*Pris),0)) AS Medelvärde
+FROM Artikel
+WHERE Lagervarde > (SELECT FLOOR(ROUND(AVG(Antal*Pris),0)) FROM Artikel)
 
 /* Uppgift 8e */
+
+SELECT F.FakturaID, F.Datum, ROUND(SUM((Fr.Pris*Fr.Antal)*(1-Fr.Rabatt)),2) AS 'Summa ex. moms',
+ROUND(SUM((Fr.Pris*Fr.Antal)*(1-Fr.Rabatt)*(1+M.Moms)), 2) AS 'Summa inkl. moms'
+FROM Faktura AS F
+INNER JOIN Fakturarad AS Fr
+ON F.FakturaID = Fr.FakturaID
+INNER JOIN Moms AS M
+ON Fr.MomsID = M.MomsID
+GROUP BY F.FakturaID, F.Datum
+
+/* Uppgift 9a */
+
+SELECT CONVERT(date, Datum) AS Datumet, Betvillkor, A.Artnamn, Fr.Antal, Fr.Pris, Moms*100 AS Moms, Fr.Rabatt,
+ROUND((Fr.Pris*Fr.Antal)*(1-Fr.Rabatt)*(1+Moms), 2) AS Summa, CONVERT(date, DATEADD(DAY, Betvillkor, Datum)) AS Förfallodatum
+FROM Faktura AS F INNER JOIN Fakturarad AS Fr
+ON F.FakturaID = Fr.FakturaID
+INNER JOIN Artikel AS A
+ON A.ArtikelID = Fr.ArtikelID
+INNER JOIN Moms AS M
+ON Fr.MomsID = M.MomsID
+
+/* Uppgift 9b */
+
+SELECT *, CAST(Postnr AS varchar(3)) AS RegionNr
+FROM Kund
+
+/* Uppgift 9c */
+
+SELECT UPPER(Artnamn) + '  ' + CAST(Lagervarde AS varchar(15)) AS Artikel
+FROM Artikel
+
+/* Uppgift 9d */
+
+SELECT DATEDIFF(DAY, CONVERT(date, GETDATE()), CONVERT(date, '2014-12-31')) AS Nyår,
+DATEDIFF(DAY, CONVERT(date, GETDATE()), CONVERT(date, '2014-04-20')) AS Födelsedag,
+DATENAME(DW, CONVERT(date, '2014-04-20')) AS Födelseveckodag
+
