@@ -147,3 +147,49 @@ GO
 
 /* Uppgift 3a */
 
+ALTER PROCEDURE usp_InsertFakturarad
+@FakturaID int,
+@ArtikelID int,
+@Antal int,
+@Rabatt decimal(2,2),
+@MomsID int
+AS
+BEGIN
+	IF EXISTS (SELECT ArtikelID FROM Artikel WHERE ArtikelID = @ArtikelID)
+	AND EXISTS (SELECT FakturaID FROM Faktura WHERE FakturaID = @FakturaID)
+	BEGIN TRY
+		DECLARE @Pris decimal(6,2), @ErrorMessage varchar(40)
+		SET @Pris = (SELECT Pris FROM Artikel WHERE ArtikelID = @ArtikelID);
+				
+		BEGIN TRAN
+			SET @ErrorMessage = 'Fakturaraden kunde inte skapas.'
+			INSERT INTO Fakturarad (FakturaID, ArtikelID, Antal, Pris, Rabatt, MomsID)
+			VALUES (@FakturaID, @ArtikelID, @Antal, @Pris, @Rabatt, @MomsID);
+			
+			SET @ErrorMessage = 'Antalet artiklar i lager kunde inte ändras.'
+			UPDATE Artikel
+			SET Antal = Antal-@Antal
+			WHERE ArtikelID = @ArtikelID;
+		COMMIT TRAN
+	END TRY
+	
+	BEGIN CATCH
+		ROLLBACK TRAN
+		RAISERROR(@ErrorMessage, 16, 1)
+	END CATCH
+END
+GO
+
+/* Uppgift 3b */
+
+CREATE PROCEDURE usp_InsertKundMedTelefon
+@Namn varchar(40),
+@Adress varchar(30),
+@Postnr varchar(6),
+@Ort varchar(25),
+@KategoriID int,
+@Rabatt decimal(2,2),
+@Anteckningar varchar(255),
+@Telenr varchar(15),
+@TeltypID int,
+@KundID int
