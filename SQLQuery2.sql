@@ -182,7 +182,33 @@ GO
 
 /* Uppgift 3b */
 
-CREATE PROCEDURE usp_InsertKundMedTelefon
+CREATE PROCEDURE usp_InsertKund
+@Namn varchar(40),
+@Adress varchar(30),
+@Postnr varchar(6),
+@Ort varchar(25),
+@KategoriID int,
+@Rabatt decimal(2,2),
+@Anteckningar varchar(255)
+AS
+BEGIN
+	INSERT INTO Kund (Namn, Adress, Postnr, Ort, KategoriID, Rabatt, Anteckningar)
+	VALUES (@Namn, @Adress, @Postnr, @Ort, @KategoriID, @Rabatt, @Anteckningar);
+END
+GO
+
+CREATE PROCEDURE usp_InsertTelefon
+@Telenr varchar(15),
+@TeltypID int,
+@KundID int
+AS
+BEGIN
+	INSERT INTO Telefon (Telenr, TeltypID, KundID)
+	VALUES (@Telenr, @TeltypID, @KundID);
+END
+GO
+
+ALTER PROCEDURE usp_InsertKundWithTelefon
 @Namn varchar(40),
 @Adress varchar(30),
 @Postnr varchar(6),
@@ -191,5 +217,33 @@ CREATE PROCEDURE usp_InsertKundMedTelefon
 @Rabatt decimal(2,2),
 @Anteckningar varchar(255),
 @Telenr varchar(15),
-@TeltypID int,
-@KundID int
+@TeltypID int
+AS
+BEGIN
+	BEGIN TRY
+		DECLARE @ErrorMessage varchar(40)
+		BEGIN TRAN
+			EXEC usp_InsertKund @Namn, @Adress, @Postnr, @Ort, @KategoriID, @Rabatt, @Anteckningar
+			SET @ErrorMessage = 'Kunde inte skapa kunden'
+			EXEC usp_InsertTelefon @Telenr, @TeltypID, @@IDENTITY
+			SET @ErrorMessage = 'Kunde inte lägga till ett telefonnummer'
+		COMMIT TRAN
+	END TRY
+	BEGIN CATCH
+		ROLLBACK TRAN
+		RAISERROR(@ErrorMessage, 16, 1)
+	END CATCH
+END
+GO
+
+CREATE PROCEDURE usp_DeleteFakturarad
+@FakturaID int
+AS
+BEGIN
+	BEGIN TRY
+	DECLARE 
+	END TRY
+	BEGIN CATCH
+	END CATCH
+END
+GO
