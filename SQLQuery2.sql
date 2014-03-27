@@ -21,7 +21,7 @@ GO
 
 /* Uppgift 2a1 */
 
-CREATE PROCEDURE usp_InsertArtikel
+ALTER PROCEDURE usp_InsertArtikel
 @Artnamn varchar(30),
 @Antal smallint,
 @Pris decimal(6,2),
@@ -29,14 +29,20 @@ CREATE PROCEDURE usp_InsertArtikel
 @Plats char(10)
 AS
 BEGIN
-	INSERT INTO Artikel (Artnamn, Antal, Pris, Rabatt, Plats)
-	VALUES (@Artnamn, @Antal, @Pris, @Rabatt, @Plats);
+	BEGIN TRY
+		INSERT INTO Artikel (Artnamn, Antal, Pris, Rabatt, Plats)
+		VALUES (@Artnamn, @Antal, @Pris, @Rabatt, @Plats);
+	END TRY
+	BEGIN CATCH
+		RAISERROR('Ett fel uppstod när artikeln skulle föras in.', 16, 1)
+		RETURN (1)
+	END CATCH
 END
 GO
 
 /* Uppgift 2a2 */
 
-CREATE PROCEDURE usp_UpdateArtikel
+ALTER PROCEDURE usp_UpdateArtikel
 @Artikelid int,
 @Artnamn varchar(30),
 @Antal smallint,
@@ -45,13 +51,19 @@ CREATE PROCEDURE usp_UpdateArtikel
 @Plats char(10)
 AS
 BEGIN
-	UPDATE Artikel
-	SET Artnamn = @Artnamn,
-	Antal = @Antal,
-	Pris = @Pris,
-	Rabatt = @Rabatt,
-	Plats = @Plats
-	WHERE ArtikelID = @Artikelid;
+	BEGIN TRY
+		UPDATE Artikel
+		SET Artnamn = @Artnamn,
+		Antal = @Antal,
+		Pris = @Pris,
+		Rabatt = @Rabatt,
+		Plats = @Plats
+		WHERE ArtikelID = @Artikelid;
+	END TRY
+	BEGIN CATCH
+		RAISERROR('Ett fel uppstod när artikeln skulle uppdateras.', 16, 1)
+		RETURN (1)
+	END CATCH
 END
 GO
 
@@ -61,8 +73,14 @@ CREATE PROCEDURE usp_DeleteArtikel
 @Artikelid int = 0
 AS
 BEGIN
-	DELETE FROM Artikel
-	WHERE ArtikelID = @Artikelid;
+	BEGIN TRY
+		DELETE FROM Artikel
+		WHERE ArtikelID = @Artikelid;
+	END TRY
+	BEGIN CATCH
+		RAISERROR('Ett fel uppstod när artikeln skulle raderas.', 16, 1)
+		RETURN (1)
+	END CATCH
 END
 GO
 
@@ -176,13 +194,14 @@ BEGIN
 	BEGIN CATCH
 		ROLLBACK TRAN
 		RAISERROR(@ErrorMessage, 16, 1)
+		RETURN (1)
 	END CATCH
 END
 GO
 
 /* Uppgift 3b */
 
-CREATE PROCEDURE usp_InsertKund
+ALTER PROCEDURE usp_InsertKund
 @Namn varchar(40),
 @Adress varchar(30),
 @Postnr varchar(6),
@@ -192,19 +211,37 @@ CREATE PROCEDURE usp_InsertKund
 @Anteckningar varchar(255)
 AS
 BEGIN
-	INSERT INTO Kund (Namn, Adress, Postnr, Ort, KategoriID, Rabatt, Anteckningar)
-	VALUES (@Namn, @Adress, @Postnr, @Ort, @KategoriID, @Rabatt, @Anteckningar);
+	BEGIN TRY
+		BEGIN TRAN
+			INSERT INTO Kund (Namn, Adress, Postnr, Ort, KategoriID, Rabatt, Anteckningar)
+			VALUES (@Namn, @Adress, @Postnr, @Ort, @KategoriID, @Rabatt, @Anteckningar);
+		COMMIT TRAN
+	END TRY
+	
+	BEGIN CATCH
+		ROLLBACK TRAN
+		RAISERROR('Kunde inte lägga till kunden.', 16, 1)
+	END CATCH
 END
 GO
 
-CREATE PROCEDURE usp_InsertTelefon
+ALTER PROCEDURE usp_InsertTelefon
 @Telenr varchar(15),
 @TeltypID int,
 @KundID int
 AS
 BEGIN
-	INSERT INTO Telefon (Telenr, TeltypID, KundID)
-	VALUES (@Telenr, @TeltypID, @KundID);
+	BEGIN TRY
+		BEGIN TRAN
+			INSERT INTO Telefon (Telenr, TeltypID, KundID)
+			VALUES (@Telenr, @TeltypID, @KundID);
+		COMMIT TRAN
+	END TRY
+	
+	BEGIN CATCH
+		ROLLBACK TRAN
+		RAISERROR('Kunde inte lägga till ett telefonnummer.', 16, 1)
+	END CATCH
 END
 GO
 
@@ -221,29 +258,86 @@ ALTER PROCEDURE usp_InsertKundWithTelefon
 AS
 BEGIN
 	BEGIN TRY
-		DECLARE @ErrorMessage varchar(40)
-		BEGIN TRAN
-			EXEC usp_InsertKund @Namn, @Adress, @Postnr, @Ort, @KategoriID, @Rabatt, @Anteckningar
-			SET @ErrorMessage = 'Kunde inte skapa kunden'
-			EXEC usp_InsertTelefon @Telenr, @TeltypID, @@IDENTITY
-			SET @ErrorMessage = 'Kunde inte lägga till ett telefonnummer'
-		COMMIT TRAN
+		EXEC usp_InsertKund @Namn, @Adress, @Postnr, @Ort, @KategoriID, @Rabatt, @Anteckningar
+		EXEC usp_InsertTelefon @Telenr, @TeltypID, @@IDENTITY
 	END TRY
+	
 	BEGIN CATCH
-		ROLLBACK TRAN
-		RAISERROR(@ErrorMessage, 16, 1)
+		RAISERROR('Något gick fel när kund och telefonnummer skulle läggas in.', 16, 1)
+		RETURN (1)
 	END CATCH
 END
 GO
 
+/* Uppgift 3c */
+
 CREATE PROCEDURE usp_DeleteFakturarad
+@FakturaID int,
+@ArtikelID int
+AS
+BEGIN
+	BEGIN TRY
+		DECLARE @ErrorMessage varchar(40)
+		BEGIN TRAN
+			SET @ErrorMessage = 'Kunde inte reglera antal på artikelnivå.'
+			UPDATE Artikel
+			SET Antal = Antal + (SELECT SUM(Antal) 
+								 FROM Fakturarad
+								 WHERE FakturaID = @FakturaID
+								 AND ArtikelID = @ArtikelID)
+			WHERE ArtikelID = @ArtikelID;
+			SET @ErrorMessage = 'Kunde inte radera fakturaraden/raderna.'
+			DELETE FROM Fakturarad
+			WHERE FakturaID = @FakturaID AND ArtikelID = @ArtikelID;
+		COMMIT TRAN
+	END TRY
+	
+	BEGIN CATCH
+		ROLLBACK TRAN
+		RAISERROR(@ErrorMessage, 16, 1)
+		RETURN (1)
+	END CATCH
+END
+GO
+
+
+ALTER PROCEDURE usp_DeleteFaktura
 @FakturaID int
 AS
 BEGIN
 	BEGIN TRY
-	DECLARE 
+		DECLARE @ErrorMessage varchar(40)
+		
+		DECLARE fakturaradCursor CURSOR
+		FOR SELECT ArtikelID
+		FROM Fakturarad
+		WHERE FakturaID = @FakturaID
+		FOR UPDATE;
+		
+		OPEN fakturaradCursor
+		DECLARE @ArtikelID int
+		FETCH fakturaradCursor INTO @ArtikelID
+		WHILE @@FETCH_STATUS = 0
+		BEGIN
+			EXEC usp_DeleteFakturarad @FakturaID, @ArtikelID
+			FETCH fakturaradCursor INTO @ArtikelID
+		END
+		CLOSE fakturaradCursor
+		DEALLOCATE fakturaradCursor
+		
+		SET @ErrorMessage = 'Kunde inte radera fakturan.'
+		BEGIN TRAN
+			DELETE FROM Faktura
+			WHERE FakturaID = @FakturaID;
+		COMMIT TRAN
 	END TRY
+	
 	BEGIN CATCH
+		ROLLBACK TRAN
+		RAISERROR(@ErrorMessage, 16, 1)
+		RETURN (1)
 	END CATCH
 END
 GO
+
+EXEC usp_DeleteFaktura 6
