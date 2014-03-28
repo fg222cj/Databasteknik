@@ -51,36 +51,42 @@ ALTER PROCEDURE usp_UpdateArtikel
 @Plats char(10)
 AS
 BEGIN
-	BEGIN TRY
-		UPDATE Artikel
-		SET Artnamn = @Artnamn,
-		Antal = @Antal,
-		Pris = @Pris,
-		Rabatt = @Rabatt,
-		Plats = @Plats
-		WHERE ArtikelID = @Artikelid;
-	END TRY
-	BEGIN CATCH
-		RAISERROR('Ett fel uppstod när artikeln skulle uppdateras.', 16, 1)
-		RETURN (1)
-	END CATCH
+	IF EXISTS (SELECT ArtikelID FROM Artikel WHERE ArtikelID = @Artikelid)
+	BEGIN
+		BEGIN TRY
+			UPDATE Artikel
+			SET Artnamn = @Artnamn,
+			Antal = @Antal,
+			Pris = @Pris,
+			Rabatt = @Rabatt,
+			Plats = @Plats
+			WHERE ArtikelID = @Artikelid;
+		END TRY
+		BEGIN CATCH
+			RAISERROR('Ett fel uppstod när artikeln skulle uppdateras.', 16, 1)
+			RETURN (1)
+		END CATCH
+	END
 END
 GO
 
 /* Uppgift 2a3 */
 
-CREATE PROCEDURE usp_DeleteArtikel
+ALTER PROCEDURE usp_DeleteArtikel
 @Artikelid int = 0
 AS
 BEGIN
-	BEGIN TRY
-		DELETE FROM Artikel
-		WHERE ArtikelID = @Artikelid;
-	END TRY
-	BEGIN CATCH
-		RAISERROR('Ett fel uppstod när artikeln skulle raderas.', 16, 1)
-		RETURN (1)
-	END CATCH
+	IF EXISTS (SELECT ArtikelID FROM Artikel WHERE ArtikelID = @Artikelid)
+	BEGIN
+		BEGIN TRY
+			DELETE FROM Artikel
+			WHERE ArtikelID = @Artikelid;
+		END TRY
+		BEGIN CATCH
+			RAISERROR('Ett fel uppstod när artikeln skulle raderas.', 16, 1)
+			RETURN (1)
+		END CATCH
+	END
 END
 GO
 
@@ -231,17 +237,20 @@ ALTER PROCEDURE usp_InsertTelefon
 @KundID int
 AS
 BEGIN
-	BEGIN TRY
-		BEGIN TRAN
-			INSERT INTO Telefon (Telenr, TeltypID, KundID)
-			VALUES (@Telenr, @TeltypID, @KundID);
-		COMMIT TRAN
-	END TRY
-	
-	BEGIN CATCH
-		ROLLBACK TRAN
-		RAISERROR('Kunde inte lägga till ett telefonnummer.', 16, 1)
-	END CATCH
+	IF EXISTS (SELECT KundID FROM Kund WHERE KundID = @KundID)
+	BEGIN
+		BEGIN TRY
+			BEGIN TRAN
+				INSERT INTO Telefon (Telenr, TeltypID, KundID)
+				VALUES (@Telenr, @TeltypID, @KundID);
+			COMMIT TRAN
+		END TRY
+		
+		BEGIN CATCH
+			ROLLBACK TRAN
+			RAISERROR('Kunde inte lägga till ett telefonnummer.', 16, 1)
+		END CATCH
+	END
 END
 GO
 
@@ -271,7 +280,7 @@ GO
 
 /* Uppgift 3c */
 
-CREATE PROCEDURE usp_DeleteFakturarad
+ALTER PROCEDURE usp_DeleteFakturarad
 @FakturaID int,
 @ArtikelID int
 AS
@@ -319,7 +328,7 @@ BEGIN
 		FETCH fakturaradCursor INTO @ArtikelID
 		WHILE @@FETCH_STATUS = 0
 		BEGIN
-			EXEC usp_DeleteFakturarad @FakturaID, @ArtikelID
+			EXEC usp_DeleteFakturarad @FakturaID, @ArtikelID -- Raderar samtliga rader med samma artikel samtidigt istället för rad för rad.
 			FETCH fakturaradCursor INTO @ArtikelID
 		END
 		CLOSE fakturaradCursor
@@ -340,4 +349,3 @@ BEGIN
 END
 GO
 
-EXEC usp_DeleteFaktura 6
