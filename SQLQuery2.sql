@@ -181,27 +181,29 @@ AS
 BEGIN
 	IF EXISTS (SELECT ArtikelID FROM Artikel WHERE ArtikelID = @ArtikelID)
 	AND EXISTS (SELECT FakturaID FROM Faktura WHERE FakturaID = @FakturaID)
-	BEGIN TRY
-		DECLARE @Pris decimal(6,2), @ErrorMessage varchar(40)
-		SET @Pris = (SELECT Pris FROM Artikel WHERE ArtikelID = @ArtikelID);
+	BEGIN
+		BEGIN TRY
+			DECLARE @Pris decimal(6,2), @ErrorMessage varchar(40)
+			SET @Pris = (SELECT Pris FROM Artikel WHERE ArtikelID = @ArtikelID);
+					
+			BEGIN TRAN
+				SET @ErrorMessage = 'Fakturaraden kunde inte skapas.'
+				INSERT INTO Fakturarad (FakturaID, ArtikelID, Antal, Pris, Rabatt, MomsID)
+				VALUES (@FakturaID, @ArtikelID, @Antal, @Pris, @Rabatt, @MomsID);
 				
-		BEGIN TRAN
-			SET @ErrorMessage = 'Fakturaraden kunde inte skapas.'
-			INSERT INTO Fakturarad (FakturaID, ArtikelID, Antal, Pris, Rabatt, MomsID)
-			VALUES (@FakturaID, @ArtikelID, @Antal, @Pris, @Rabatt, @MomsID);
-			
-			SET @ErrorMessage = 'Antalet artiklar i lager kunde inte ändras.'
-			UPDATE Artikel
-			SET Antal = Antal-@Antal
-			WHERE ArtikelID = @ArtikelID;
-		COMMIT TRAN
-	END TRY
-	
-	BEGIN CATCH
-		ROLLBACK TRAN
-		RAISERROR(@ErrorMessage, 16, 1)
-		RETURN (1)
-	END CATCH
+				SET @ErrorMessage = 'Antalet artiklar i lager kunde inte ändras.'
+				UPDATE Artikel
+				SET Antal = Antal-@Antal
+				WHERE ArtikelID = @ArtikelID;
+			COMMIT TRAN
+		END TRY
+		
+		BEGIN CATCH
+			ROLLBACK TRAN
+			RAISERROR(@ErrorMessage, 16, 1)
+			RETURN (1)
+		END CATCH
+	END
 END
 GO
 

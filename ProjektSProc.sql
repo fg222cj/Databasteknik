@@ -40,3 +40,45 @@ BEGIN
 	END CATCH
 END
 GO
+
+ALTER PROCEDURE usp_InsertBokning
+@PersonID int,
+@SalID int,
+@Datum smalldatetime,
+@Tidsatgang tinyint
+AS
+BEGIN
+	IF EXISTS (SELECT PersonID FROM Person WHERE PersonID = @PersonID)
+	BEGIN
+		BEGIN TRY
+			BEGIN TRAN
+				INSERT INTO Bokning (PersonID, SalID, Datum, Tidsatgang)
+				VALUES (@PersonID, @SalID, @Datum, @Tidsatgang);
+			COMMIT TRAN
+		END TRY
+		BEGIN CATCH
+			ROLLBACK TRAN
+			RAISERROR('Ett fel uppstod när bokningen skulle utföras.', 16, 1)
+			RETURN (1)
+		END CATCH
+	END
+END
+GO
+
+CREATE PROCEDURE usp_InsertSal
+@Namn varchar(20)
+AS
+BEGIN
+	BEGIN TRY
+		BEGIN TRAN
+			INSERT INTO Sal (Namn)
+			VALUES (@Namn);
+		COMMIT TRAN
+	END TRY
+	BEGIN CATCH
+		ROLLBACK TRAN
+		RAISERROR('Ett fel uppstod när bokningen skulle utföras.', 16, 1)
+		RETURN (1)
+	END CATCH
+END
+GO
